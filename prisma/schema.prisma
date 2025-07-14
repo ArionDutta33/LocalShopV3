@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// schema.prisma
+model User {
+  id        Int        @id @default(autoincrement())
+  username  String
+  email     String     @unique
+  password  String
+  contactNo Int?
+  followers Follower[]
+}
+
+model Shop {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String
+  contact     String
+  addressId   Int          @unique
+  address     Address      @relation(fields: [addressId], references: [id])
+  products    Product[]
+  socialLinks SocialLink[]
+  followers   Follower[]
+}
+
+model Address {
+  id         Int    @id @default(autoincrement())
+  streetName String
+  city       String
+  state      String
+  zipCode    String
+  country    String
+
+  shop Shop? // No `fields` or `references` here
+}
+
+model Product {
+  id          Int    @id @default(autoincrement())
+  productName String
+  price       Int
+  shopId      Int
+  shop        Shop   @relation(fields: [shopId], references: [id])
+}
+
+model SocialLink {
+  id     Int    @id @default(autoincrement())
+  name   String
+  shopId Int
+  shop   Shop   @relation(fields: [shopId], references: [id])
+}
+
+model Follower {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  shopId Int
+  user   User @relation(fields: [userId], references: [id])
+  shop   Shop @relation(fields: [shopId], references: [id])
+
+  @@unique([userId, shopId]) // Prevent duplicate follows
+}
