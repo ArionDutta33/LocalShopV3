@@ -8,6 +8,7 @@ interface RegisterUserInput {
   id: string;
   username: string;
   email: string;
+  role?: string;
   password: string;
   contactNo?: string;
   createdAt: Date;
@@ -23,7 +24,7 @@ export const registerUser = async (
   next: NextFunction
 ) => {
   try {
-    const { email, username, password } = req.body;
+    const { email, username, password, role } = req.body;
     if (!email || !username || !password) {
       console.log("no creds");
       throw new ApiError("All fields are required", 404);
@@ -44,10 +45,12 @@ export const registerUser = async (
         username,
         email,
         password: hashPassword,
+        role: role ? role : "user",
       },
       select: {
         username: true,
         email: true,
+        role: true,
       },
     });
     return res
@@ -84,6 +87,7 @@ export const loginUser = async (
       userId: existingUser.id,
       email: existingUser.email,
       username: existingUser.username,
+      role: existingUser.role,
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET!, {
       expiresIn: "1h",

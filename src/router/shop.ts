@@ -1,7 +1,11 @@
 import { Router } from "express";
-import { followShop } from "../controller/shop";
+import { createShop, deleteShop, followShop } from "../controller/shop";
 import { isAuthenticated } from "../middleware/isAuthenticated";
+import { isOwner } from "../middleware/isOwner";
+import { addProduct } from "../controller/product";
 const router = Router();
+router.post("/", isAuthenticated, isOwner, createShop);
+router.post("/:id/product", isAuthenticated, isOwner, addProduct);
+router.delete("/:id", isAuthenticated, isOwner, deleteShop);
 router.post("/:id/follow", isAuthenticated, followShop);
-router.get("/");
 export default router;

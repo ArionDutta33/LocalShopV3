@@ -102,3 +102,87 @@ export const followShop = async (
     next(error);
   }
 };
+
+interface ShopRequest {
+  name: string;
+  description: string;
+  contact: string;
+  address: {
+    streetName: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  socialLinks: {
+    name: string;
+  };
+}
+export const createShop = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  // model SocialLink {
+  //   id     Int    @id @default(autoincrement())
+  //   name   String
+  //   shopId Int
+  //   shop   Shop   @relation(fields: [shopId], references: [id])
+  // }
+  try {
+    const { name, description, contact, address, socialLinks } = req.body;
+    if (!name || !description || !contact || !address) {
+      throw new ApiError("All fields are required", 400);
+    }
+
+    const createdShop = await prisma.shop.create({
+      data: {
+        name,
+        description,
+        contact,
+        owner: {
+          connect: { id: req.user?.userId },
+        },
+        address: {
+          create: {
+            streetName: address.streetName,
+            city: address.city,
+            state: address.state,
+            zipCode: address.zipCode,
+            country: address.country,
+          },
+        },
+        socialLinks: {
+          create: {
+            name: socialLinks.name,
+          },
+        },
+      },
+      include: {
+        address: true,
+      },
+    });
+
+    return res
+      .status(201)
+      .json(new ApiResponse(201, "Shop created successfully", createdShop));
+  } catch (error) {
+    next(error);
+  }
+};
+export const deleteShop = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    await prisma.shop.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
